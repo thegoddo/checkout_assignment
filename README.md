@@ -4,7 +4,7 @@ This project is a simplified, high-performance Checkout Flow built for the Ecoya
 
 ## 🚀 Live Demo
 
-[Click here to view the deployed application](#)
+[Click here to view the deployed application](https://checkout-assignment.vercel.app/)
 
 ### Tech Stack
 
