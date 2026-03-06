@@ -27,7 +27,6 @@ export default async function Home() {
 
   return (
     <main style={{ padding: "2rem 0" }}>
-      <h1>Hello world</h1>
       <CheckoutFlow initialData={data} />
     </main>
   );

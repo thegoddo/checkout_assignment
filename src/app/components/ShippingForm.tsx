@@ -1,107 +1,168 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Grid, TextField, Button, Typography, Box } from "@mui/material";
-import { useCheckoutStore } from "../../../store/useCheckoutStore";
+import {
+  Grid,
+  TextField,
+  Button,
+  Typography,
+  Box,
+  Paper,
+  Card,
+  CardActionArea,
+  CardContent,
+} from "@mui/material";
+import {
+  useCheckoutStore,
+  ShippingDetails,
+} from "../../../store/useCheckoutStore";
 import { shippingSchema } from "../../../lib/validation";
-import { z } from "zod";
 
-type ShippingData = z.infer<typeof shippingSchema>;
-
-interface ShippingFormProps {
-  onNext: () => void;
-  onBack: () => void;
-}
-
-export default function ShippingForm({ onNext, onBack }: ShippingFormProps) {
-  const { shipping, setShipping } = useCheckoutStore();
+export default function ShippingForm() {
+  const { addresses, addAddress, selectAddress, selectedAddressId } =
+    useCheckoutStore();
+  const [isAddingNew, setIsAddingNew] = useState(addresses.length === 0);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm({
+    reset,
+  } = useForm<ShippingDetails>({
     resolver: zodResolver(shippingSchema),
-    defaultValues: shipping,
   });
 
-  const onSubmit = (data: ShippingData) => {
-    setShipping(data);
-    onNext();
+  const onSubmitNew = (data: ShippingDetails) => {
+    addAddress(data);
+    setIsAddingNew(false);
+    reset();
   };
 
   return (
-    <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ mt: 3 }}>
-      <Typography variant="h6" gutterBottom>
+    <Box>
+      <Typography variant="h6" sx={{ mb: 3, fontWeight: 700 }}>
         Shipping Address
       </Typography>
-      <Grid container spacing={3}>
-        <Grid size={12}>
-          <TextField
-            {...register("fullName")}
-            label="Full Name"
-            fullWidth
-            error={!!errors.fullName}
-            helperText={errors.fullName?.message as string}
-          />
-        </Grid>
-        <Grid size={12}>
-          <TextField
-            {...register("email")}
-            label="Email Address"
-            fullWidth
-            error={!!errors.email}
-            helperText={errors.email?.message as string}
-          />
-        </Grid>
-        <Grid size={12}>
-          <TextField
-            {...register("phone")}
-            label="Phone Number"
-            fullWidth
-            error={!!errors.phone}
-            helperText={errors.phone?.message as string}
-          />
-        </Grid>
-        <Grid size={12}>
-          <TextField
-            {...register("pinCode")}
-            label="PIN Code"
-            fullWidth
-            error={!!errors.pinCode}
-            helperText={errors.pinCode?.message as string}
-          />
-        </Grid>
-        <Grid size={12}>
-          <TextField
-            {...register("city")}
-            label="City"
-            fullWidth
-            error={!!errors.city}
-            helperText={errors.city?.message as string}
-          />
-        </Grid>
-        <Grid size={12}>
-          <TextField
-            {...register("state")}
-            label="State"
-            fullWidth
-            error={!!errors.state}
-            helperText={errors.state?.message as string}
-          />
-        </Grid>
+
+      <Grid container spacing={2}>
+        {addresses.map((addr) => (
+          <Grid size={12} key={addr.id}>
+            <Card
+              variant="outlined"
+              sx={{
+                border:
+                  selectedAddressId === addr.id
+                    ? "2px solid #2e7d32"
+                    : "1px solid #e0e0e0",
+                bgcolor: selectedAddressId === addr.id ? "#f1f8e9" : "white",
+              }}
+            >
+              <CardActionArea onClick={() => selectAddress(addr.id)}>
+                <CardContent>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                    {addr.fullName}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {addr.email}
+                  </Typography>
+                  <Typography variant="body2">
+                    {addr.city}, {addr.state} - {addr.pinCode}
+                  </Typography>
+                  <Typography variant="body2" sx={{ mt: 1 }}>
+                    {addr.phone}
+                  </Typography>
+                </CardContent>
+              </CardActionArea>
+            </Card>
+          </Grid>
+        ))}
       </Grid>
 
-      <Box sx={{ display: "flex", justifyContent: "space-between", mt: 4 }}>
-        <Button onClick={onBack} variant="outlined">
-          Back to Cart
-        </Button>
-        <Button type="submit" variant="contained" color="primary">
-          Proceed to Payment
-        </Button>
-      </Box>
+      <Button
+        variant="text"
+        onClick={() => setIsAddingNew(!isAddingNew)}
+        sx={{ mt: 2, mb: 3, textTransform: "none" }}
+      >
+        {isAddingNew ? "✕ Cancel" : "+ Add a different address"}
+      </Button>
+
+      {isAddingNew && (
+        <Paper
+          elevation={0}
+          sx={{ p: 3, border: "1px dashed #ccc", borderRadius: 2 }}
+        >
+          <Box component="form" onSubmit={handleSubmit(onSubmitNew)}>
+            <Grid container spacing={2}>
+              <Grid size={12}>
+                <TextField
+                  {...register("fullName")}
+                  label="Full Name"
+                  fullWidth
+                  error={!!errors.fullName}
+                  helperText={errors.fullName?.message}
+                />
+              </Grid>
+              <Grid size={12}>
+                <TextField
+                  {...register("email")}
+                  label="Email"
+                  fullWidth
+                  error={!!errors.email}
+                  helperText={errors.email?.message}
+                />
+              </Grid>
+              <Grid size={12}>
+                <TextField
+                  {...register("phone")}
+                  label="Phone"
+                  fullWidth
+                  error={!!errors.phone}
+                  helperText={errors.phone?.message}
+                />
+              </Grid>
+              <Grid size={12}>
+                <TextField
+                  {...register("city")}
+                  label="City"
+                  fullWidth
+                  error={!!errors.city}
+                  helperText={errors.city?.message}
+                />
+              </Grid>
+              <Grid size={12}>
+                <TextField
+                  {...register("state")}
+                  label="State"
+                  fullWidth
+                  error={!!errors.state}
+                  helperText={errors.state?.message}
+                />
+              </Grid>
+              <Grid size={12}>
+                <TextField
+                  {...register("pinCode")}
+                  label="PIN Code"
+                  fullWidth
+                  error={!!errors.pinCode}
+                  helperText={errors.pinCode?.message}
+                />
+              </Grid>
+              <Grid size={12}>
+                <Button
+                  type="submit"
+                  variant="contained"
+                  color="success"
+                  sx={{ mt: 1 }}
+                >
+                  Save and Select
+                </Button>
+              </Grid>
+            </Grid>
+          </Box>
+        </Paper>
+      )}
     </Box>
   );
 }

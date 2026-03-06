@@ -1,85 +1,58 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import {
   Box,
   Typography,
-  Button,
   Grid,
   Divider,
   List,
   ListItem,
   ListItemText,
   Paper,
-  CircularProgress,
 } from "@mui/material";
-
-import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import { useCheckoutStore } from "../../../store/useCheckoutStore";
 
-export default function PaymentReview({ onBack }: { onBack: () => void }) {
-  const { cart, shipping, shippingFee } = useCheckoutStore();
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
-
+export default function PaymentReview({
+  isProcessing,
+}: {
+  isProcessing: boolean;
+}) {
+  const { cart, addresses, selectedAddressId, shippingFee } =
+    useCheckoutStore();
+  const selectedAddress = addresses.find(
+    (addr) => addr.id === selectedAddressId,
+  );
   const subtotal = cart.reduce(
     (acc, item) => acc + item.product_price * item.quantity,
     0,
   );
-  const grandTotal = subtotal + shippingFee;
-
-  const handlePayment = () => {
-    setIsProcessing(true);
-    // Simulate API delay
-    setTimeout(() => {
-      setIsProcessing(false);
-      setIsSuccess(true);
-    }, 2000);
-  };
-
-  if (isSuccess) {
-    return (
-      <Box sx={{ textAlign: "center", py: 5 }}>
-        <CheckCircleOutlineIcon color="success" sx={{ fontSize: 80, mb: 2 }} />
-        <Typography variant="h3" gutterBottom>
-          Order Successful!
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
-          Thank you for your purchase, {shipping.fullName}. Your order is
-          successful.
-        </Typography>
-        <Button variant="contained" sx={{ mt: 4 }} href="/">
-          Return To Home
-        </Button>
-      </Box>
-    );
-  }
 
   return (
-    <Box sx={{ mt: 3 }}>
-      <Typography variant="h6" gutterBottom>
-        Review Your Order
+    <Box sx={{ opacity: isProcessing ? 0.5 : 1 }}>
+      <Typography variant="h6" sx={{ mb: 3, fontWeight: 700 }}>
+        Review & Confirm
       </Typography>
-
-      <Grid container spacing={4}>
-        {/* Left Side: Summaries */}
+      <Grid container spacing={3}>
         <Grid size={12}>
-          <Paper variant="outlined" sx={{ p: 2, mb: 3 }}>
-            <Typography variant="subtitle1" fontWeight="bold">
-              Shipping To:
+          <Paper variant="outlined" sx={{ p: 2, mb: 3, bgcolor: "#f9f9f9" }}>
+            <Typography variant="subtitle2" color="primary" fontWeight="bold">
+              SHIPPING TO
             </Typography>
-            <Typography variant="body2">{shipping.fullName}</Typography>
-            <Typography variant="body2">
-              {shipping.email} | {shipping.phone}
-            </Typography>
-            <Typography variant="body2">
-              {shipping.city}, {shipping.state} - {shipping.pinCode}
-            </Typography>
+            {selectedAddress ? (
+              <Box sx={{ mt: 1 }}>
+                <Typography variant="body1" fontWeight="bold">
+                  {selectedAddress.fullName}
+                </Typography>
+                <Typography variant="body2">
+                  {selectedAddress.city}, {selectedAddress.state} -{" "}
+                  {selectedAddress.pinCode}
+                </Typography>
+              </Box>
+            ) : (
+              <Typography color="error">No address selected.</Typography>
+            )}
           </Paper>
-
-          <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
-            Items:
-          </Typography>
           <List disablePadding>
             {cart.map((item) => (
               <ListItem key={item.product_id} sx={{ py: 1, px: 0 }}>
@@ -94,55 +67,24 @@ export default function PaymentReview({ onBack }: { onBack: () => void }) {
             ))}
           </List>
         </Grid>
-
-        {/* Right Side: Totals */}
         <Grid size={12}>
-          <Paper elevation={0} sx={{ p: 2, bgcolor: "grey.50" }}>
-            <Box
-              sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}
-            >
+          <Box sx={{ p: 2, border: "1px solid #eee", borderRadius: 2 }}>
+            <Box sx={{ display: "flex", justifyContent: "space-between" }}>
               <Typography>Subtotal</Typography>
               <Typography>₹{subtotal}</Typography>
             </Box>
-            <Box
-              sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}
-            >
+            <Box sx={{ display: "flex", justifyContent: "space-between" }}>
               <Typography>Shipping</Typography>
               <Typography>₹{shippingFee}</Typography>
             </Box>
-            <Divider sx={{ my: 2 }} />
-            <Box
-              sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}
-            >
+            <Divider sx={{ my: 1 }} />
+            <Box sx={{ display: "flex", justifyContent: "space-between" }}>
               <Typography variant="h6">Total</Typography>
               <Typography variant="h6" color="primary">
-                ₹{grandTotal}
+                ₹{subtotal + shippingFee}
               </Typography>
             </Box>
-
-            <Button
-              fullWidth
-              variant="contained"
-              size="large"
-              onClick={handlePayment}
-              disabled={isProcessing}
-            >
-              {isProcessing ? (
-                <CircularProgress size={24} color="inherit" />
-              ) : (
-                "Pay Securely"
-              )}
-            </Button>
-            <Button
-              fullWidth
-              variant="text"
-              onClick={onBack}
-              sx={{ mt: 1 }}
-              disabled={isProcessing}
-            >
-              Back to Shipping
-            </Button>
-          </Paper>
+          </Box>
         </Grid>
       </Grid>
     </Box>
